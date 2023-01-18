@@ -2,7 +2,7 @@ from pygame.locals import *
 import pygame
 import sys
 import random
-import noise
+#import noise
 import json
 from data import save
 import os
@@ -51,7 +51,12 @@ def generate_chunk(x, y):
             target_x = x * CHUNK_SIZE + x_pos
             target_y = y * CHUNK_SIZE + y_pos
             tile_type = 0  # nothing
-            height = int(noise.pnoise1(target_x * 0.1, repeat=999999) * 5)
+            if x >= 9999 or x <= -9999:
+                # int(noise.pnoise1(target_x * 0.1, repeat=999999) * 5)
+                height = random.randrange(0, 21)
+            else:
+                height = 7
+                #int(noise.pnoise1(target_x * 0.1, repeat=999999) * 5)
 
             if target_y > 8 - height:
                 tile_type = 2  # dirt
@@ -111,12 +116,16 @@ plant_img.set_colorkey((255, 255, 255))
 tile_index = {1: grass_img, 2: dirt_img, 3: plant_img}
 
 jump_sound = pygame.mixer.Sound('./data/sound/jump.wav')
+jump_sound.set_volume(0.2)
+global music
+music = pygame.mixer.music.load('./data/sound/music.wav')
 grass_sounds = [
     pygame.mixer.Sound('./data/sound/grass_0.wav'),
     pygame.mixer.Sound('./data/sound/grass_1.wav')
 ]
 grass_sounds[0].set_volume(0.2)
 grass_sounds[1].set_volume(0.2)
+
 
 player_action = 'idle'
 player_frame = 0
@@ -167,10 +176,18 @@ def move(rect, movement, tiles):
     return rect, collision_types
 
 
+    
 player_rect.x = true_scroll[0]
 player_rect.y = true_scroll[1]
+playing = False
+pygame.mixer.music.set_volume(0.2)
+
 while True:  # game loop
     display.fill((146, 244, 255))  # clear screen by filling it with blue
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.play()
+        
+        
 
     if grass_sound_timer > 0:
         grass_sound_timer -= 1
