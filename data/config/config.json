@@ -3,6 +3,7 @@
         "width": 720,
         "height": 405,
         "name": "Splat-Plat",
-        "version": "1.9.8-Beta"
+        "version": "1.9.8-Beta",
+        "Render-Distance":16
     }
 }

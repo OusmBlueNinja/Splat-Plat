@@ -2,7 +2,13 @@ from pygame.locals import *
 import pygame
 import sys
 import random
-#import noise
+
+# noise library is realy hard to install for some reason so i made it optinal
+try:
+    import noise
+except:
+    print("[WARN] noise not installed \nProgram will continue \nTERAIN GENERATION INACTIVE")
+    
 import json
 from data import save
 import os
@@ -19,6 +25,7 @@ data = json.load(f)
 width, height = data['config']['width'], data['config']['height']
 WindowName = data['config']['name']
 Version = data['config']['version']
+CHUNK_SIZE = data['config']['Render-Distance']
 
 pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()  # initiates pygame
@@ -41,7 +48,9 @@ air_timer = 0
 loadX, loadY, Seed = save.load()
 true_scroll = [loadX, loadY]
 
-CHUNK_SIZE = 8
+
+
+pygame.mouse.set_visible(False)
 
 
 def generate_chunk(x, y):
@@ -51,12 +60,10 @@ def generate_chunk(x, y):
             target_x = x * CHUNK_SIZE + x_pos
             target_y = y * CHUNK_SIZE + y_pos
             tile_type = 0  # nothing
-            if x >= 9999 or x <= -9999:
-                # int(noise.pnoise1(target_x * 0.1, repeat=999999) * 5)
-                height = random.randrange(0, 21)
-            else:
+            try:
+                height = int(noise.pnoise1(target_x * 0.1, repeat=999999) * 5)
+            except:
                 height = 7
-                #int(noise.pnoise1(target_x * 0.1, repeat=999999) * 5)
 
             if target_y > 8 - height:
                 tile_type = 2  # dirt
@@ -110,18 +117,22 @@ game_map = {}
 
 grass_img = pygame.image.load('./data/images/grass.png')
 dirt_img = pygame.image.load('./data/images/dirt.png')
+scope_img = pygame.image.load('./data/images/assets/scope.png')
+scope_img = pygame.transform.scale(scope_img, (16,16))
 plant_img = pygame.image.load('./data/images/plant.png').convert()
 plant_img.set_colorkey((255, 255, 255))
 
 tile_index = {1: grass_img, 2: dirt_img, 3: plant_img}
 
-jump_sound = pygame.mixer.Sound('./data/sound/jump.wav')
+jump_sound = pygame.mixer.Sound('./data/sound/fx/jump.wav')
 jump_sound.set_volume(0.2)
+Boom_Sound = pygame.mixer.Sound('./data/sound/fx/boom.wav')
+Boom_Sound.set_volume(0.2)
 global music
 music = pygame.mixer.music.load('./data/sound/music.wav')
 grass_sounds = [
-    pygame.mixer.Sound('./data/sound/grass_0.wav'),
-    pygame.mixer.Sound('./data/sound/grass_1.wav')
+    pygame.mixer.Sound('./data/sound/fx/grass_0.wav'),
+    pygame.mixer.Sound('./data/sound/fx/grass_1.wav')
 ]
 grass_sounds[0].set_volume(0.2)
 grass_sounds[1].set_volume(0.2)
@@ -132,6 +143,7 @@ player_frame = 0
 player_flip = False
 
 grass_sound_timer = 0
+boom_sound_timer = 0
 
 player_rect = pygame.Rect(100, 100, 5, 13)
 
@@ -182,6 +194,26 @@ player_rect.y = true_scroll[1]
 playing = False
 pygame.mixer.music.set_volume(0.2)
 
+
+
+
+def projectile():
+    global boom_sound_timer
+    mousePos = pygame.mouse.get_pos()
+    pressed = pygame.mouse.get_pressed()
+    offset = (mousePos[0]/2, mousePos[1]/2)
+    if pressed[2]:
+        display.blit(pygame.transform.flip(scope_img, True, True), offset)
+    if pressed[0]:
+        if boom_sound_timer == 0:
+                boom_sound_timer = 100
+                Boom_Sound.play()
+        
+    
+    
+
+
+
 while True:  # game loop
     display.fill((146, 244, 255))  # clear screen by filling it with blue
     if not pygame.mixer.music.get_busy():
@@ -191,6 +223,8 @@ while True:  # game loop
 
     if grass_sound_timer > 0:
         grass_sound_timer -= 1
+    if boom_sound_timer > 0:
+        boom_sound_timer -= 1
 
     true_scroll[0] += (player_rect.x - true_scroll[0] - 152) / 20
     true_scroll[1] += (player_rect.y - true_scroll[1] - 106) / 20
@@ -275,21 +309,21 @@ while True:  # game loop
             pygame.quit()
             sys.exit()
         if event.type == KEYDOWN:
-            if event.key == K_w:
-                pygame.mixer.music.fadeout(1000)
-            if event.key == K_RIGHT:
+            if event.key == K_d:
                 moving_right = True
-            if event.key == K_LEFT:
+            if event.key == K_a:
                 moving_left = True
-            if event.key == K_UP:
+            if event.key == K_w:
                 if air_timer < 6:
                     jump_sound.play()
                     vertical_momentum = -5
         if event.type == KEYUP:
-            if event.key == K_RIGHT:
+            if event.key == K_d:
                 moving_right = False
-            if event.key == K_LEFT:
+            if event.key == K_a:
                 moving_left = False
+                
+    projectile()
 
     screen.blit(pygame.transform.scale(display, WINDOW_SIZE), (0, 0))
     pygame.display.update()
