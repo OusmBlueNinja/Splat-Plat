@@ -10,7 +10,7 @@ def grad1(hash: int, x: float):
         g = -1
     return (g * x)
 
-def noise1(x: float, repeat: int, base: int):
+def pnoise1(x: float, repeat: int, base: int):
     fx = 0
     i = int(math.floor(x)) % repeat
     ii = (i + 1) % repeat

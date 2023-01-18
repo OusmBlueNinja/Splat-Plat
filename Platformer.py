@@ -118,7 +118,7 @@ game_map = {}
 grass_img = pygame.image.load('./data/images/grass.png')
 dirt_img = pygame.image.load('./data/images/dirt.png')
 scope_img = pygame.image.load('./data/images/assets/scope.png')
-scope_img = pygame.transform.scale(scope_img, (16,16))
+#scope_img = pygame.transform.scale(scope_img, (16,16))
 plant_img = pygame.image.load('./data/images/plant.png').convert()
 plant_img.set_colorkey((255, 255, 255))
 
@@ -200,8 +200,11 @@ pygame.mixer.music.set_volume(0.2)
 def projectile():
     global boom_sound_timer
     mousePos = pygame.mouse.get_pos()
+    
     pressed = pygame.mouse.get_pressed()
     offset = (mousePos[0]/2, mousePos[1]/2)
+    print(mousePos, offset)
+    #offset = mousePos[0]- player_rect.x, mousePos[1] - player_rect.y
     if pressed[2]:
         display.blit(pygame.transform.flip(scope_img, True, True), offset)
     if pressed[0]:
@@ -244,7 +247,6 @@ while True:  # game loop
             pygame.draw.rect(display, (15, 76, 73), obj_rect)
 
     tile_rects = []
-    print(scroll[0], scroll[1])
     for y in range(3):
         for x in range(4):
             target_x = x - 1 + int(round(scroll[0] / (CHUNK_SIZE * 16)))
